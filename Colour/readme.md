@@ -5,7 +5,7 @@
 </p>
 
 ## Features
-- **Colour ctrl curves based off suffix**
+- **Colour ctrl curves based off ctrl name suffix**
 
 ## Installation
 ### Requirements
