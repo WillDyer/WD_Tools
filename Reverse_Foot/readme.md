@@ -24,9 +24,7 @@ This tool creates reverse foot joints and attrs setup via the node editor with n
 import sys
 sys.path.append("C:\Docs\maya\2024\scripts") # change this to your path or a relative path
 
-import importlib
-from rev_foot import rev_foot_code
+from Reverse_Foot import rev_foot_code
 
-importlib.reload(rev_foot_code)
 rev_foot_code.main()
 ```
