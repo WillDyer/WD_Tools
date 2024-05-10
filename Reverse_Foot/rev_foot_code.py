@@ -3,8 +3,6 @@ from maya import OpenMayaUI as omui
 
 from PySide2.QtCore import *
 from PySide2.QtGui import *
-#suggested fix from PySide2.QtWidgets import QWidget, QUiLoader, QApplication, QPushButton, QVBoxLayout, QFileDialog, QLabel, QSpinBox
-#class main_ui(QWidget):
 from PySide2.QtWidgets import QWidget
 from PySide2.QtWidgets import *
 from PySide2.QtUiTools import *
@@ -16,7 +14,7 @@ mayaMainWindow = wrapInstance(int(mayaMainWindowPtr), QWidget)
 
 
 class QtSampler(QWidget):
-    def __init__(self, *args, **kwargs): # __init__ is always the first thing to run when a class is made
+    def __init__(self, *args, **kwargs):
         super(QtSampler,self).__init__(*args, **kwargs)
         self.setParent(mayaMainWindow)
         self.setWindowFlags(Qt.Window)
@@ -30,7 +28,7 @@ class QtSampler(QWidget):
         self.ui.create_locators.clicked.connect(self.create_loc)
         self.ui.make_rev_foot.clicked.connect(self.create_system)
         
-    def initUI(self): # this loads the ui
+    def initUI(self):
         loader = QUiLoader()
         UI_FILE = f"{os.path.dirname(os.path.abspath(__file__))}\main_window.ui" #path to ui
         file = QFile(UI_FILE)
