@@ -16,7 +16,7 @@ This tool creates a simple FK chain using offset parent matrix.
 ## Installation
 ### Requirements
 - Autodesk Maya
-- OPM module
+- OPM module (https://gist.github.com/Muream/b4255ec4f690222d92fe794be249b7f1)
 
 ### Running The Tool
 - To run the file execute the follow code in the maya script editor or shelf tool.
