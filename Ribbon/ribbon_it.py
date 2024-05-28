@@ -1,7 +1,14 @@
 import maya.cmds as cmds
-import maya.OpenMaya as om
+from maya import OpenMayaUI as omui
 import importlib
 import sys, os, math
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import QWidget
+from PySide2.QtWidgets import *
+from PySide2.QtUiTools import *
+from shiboken2 import wrapInstance
+import os.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import ramp_values
@@ -9,12 +16,35 @@ import OPM
 importlib.reload(ramp_values)
 importlib.reload(OPM)
 
-class ribbon():
-    def __init__(self):
-        #self.group_setup()
-        self.ctrl_amount = 3
-        self.fk_enabled = 1
+mayaMainWindowPtr = omui.MQtUtil.mainWindow()
+mayaMainWindow = wrapInstance(int(mayaMainWindowPtr), QWidget)
+
+class QtSampler(QWidget):
+    def __init__(self, *args, **kwargs): # __init__ is always the first thing to run when a class is made
+        super(QtSampler,self).__init__(*args, **kwargs)
+        self.setParent(mayaMainWindow)
+        self.setWindowFlags(Qt.Window)
+        self.setWindowTitle("WD_Ribbon_it")
+        self.setFixedWidth(285)
+        self.setFixedHeight(215)
+        self.initUI()
+
+        self.ui.create_ribbon.clicked.connect(self.create_ribbon)
+        
+    def initUI(self): # this loads the ui
+        loader = QUiLoader()
+        UI_FILE = f"{os.path.dirname(os.path.abspath(__file__))}\interface\main_window.ui" #path to ui
+        file = QFile(UI_FILE)
+        file.open(QFile.ReadOnly)
+        self.ui = loader.load(file, parentWidget=self)
+        file.close()
+
+    def create_ribbon(self):
+        #self.ctrl_amount = 3
+        self.ctrl_amount = self.ui.amount.value()
         self.selection = cmds.ls(sl=1)
+        if not self.selection:
+            cmds.error("ERROR: No surface selected!")
 
         self.top_grp = cmds.group(n="grp_ribbon_#", em=1)
         self.base_ribbon()
@@ -106,3 +136,8 @@ class ribbon():
         print(self.skn_jnt_list)
         print(self.selection[0])
         cmds.skinCluster(self.skn_jnt_list, self.selection[0])
+
+def main():
+    ui = QtSampler()
+    ui.show()
+    return ui
