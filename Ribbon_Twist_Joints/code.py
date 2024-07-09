@@ -1,30 +1,39 @@
 import maya.cmds as cmds
 
-def insert_offset_isoparms(nurbs_surface, param_value, offset=0.01):
-    """
-    Inserts isoparms at specified offsets from an existing isoparm.
+class ribbon_twist():
+    def __init__(self):
+        selected_surface = cmds.ls(selection=True)
+        if selected_surface:
+            print("i changed")
+            self.nurbs_surface = selected_surface[0]
+            iso_list = self.select_isoparms(UV="U")
+            self.insert_offset_isoparms(iso_list)
+        else:
+            print("Please select a NURBS surface.")
     
-    Args:
-        nurbs_surface (str): The name of the NURBS surface.
-        param_value (float): The parameter value of the existing isoparm.
-        offset (float): The offset value for the new isoparms.
-    """
-    
-    # Calculate the new parameter values
-    param_value_plus = param_value + offset
-    param_value_minus = param_value - offset
-    
-    # Insert the isoparms
-    cmds.insertKnotSurface(nurbs_surface, d=1, p=param_value_plus)
-    cmds.insertKnotSurface(nurbs_surface, d=1, p=param_value_minus)
+    def select_isoparms(self, UV):
+        surface_info = cmds.createNode('surfaceInfo')
 
-def run():
-    selected_surface = cmds.ls(selection=True)
-    if selected_surface:
-        nurbs_surface = selected_surface[0]
-        # Specify the parameter value of the existing isoparm (e.g., 0.5)
-        existing_param_value = 0.8
-        # Insert isoparms at offsets of 0.01 on either side
-        insert_offset_isoparms(nurbs_surface, existing_param_value, offset=0.01)
-    else:
-        print("Please select a NURBS surface.")
+        cmds.connectAttr(f"{self.nurbs_surface}.worldSpace[0]", f"{surface_info}.inputSurface", f=True)
+
+        iso_list = cmds.getAttr(f"{surface_info}.knots{UV}")[0]
+        iso_list = list(dict.fromkeys(iso_list))
+        print(iso_list)
+        cmds.delete(surface_info)
+        return iso_list
+
+    def insert_offset_isoparms(self, iso_list):
+        offset = 0.01
+        for iso in iso_list:
+            print(iso)
+            # Calculate the new parameter values
+            param_value_plus = iso + offset
+            param_value_minus = iso - offset
+            
+            # Insert the isoparms
+            cmds.insertKnotSurface(self.nurbs_surface, d=1, p=param_value_plus, rpo=1)
+            cmds.insertKnotSurface(self.nurbs_surface, d=1, p=param_value_minus, rpo=1)
+            cmds.delete(self.nurbs_surface, constructionHistory = True)
+
+def main():
+    run = ribbon_twist()
