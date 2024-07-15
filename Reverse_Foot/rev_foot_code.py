@@ -30,7 +30,7 @@ class QtSampler(QWidget):
         
     def initUI(self):
         loader = QUiLoader()
-        UI_FILE = f"{os.path.dirname(os.path.abspath(__file__))}\main_window.ui" #path to ui
+        UI_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),"main_window.ui") #path to ui
         file = QFile(UI_FILE)
         file.open(QFile.ReadOnly)
         self.ui = loader.load(file, parentWidget=self)
