@@ -30,14 +30,21 @@ class QtSampler(QWidget):
         self.initUI()
 
         self.ui.create_ribbon.clicked.connect(self.create_ribbon)
-        
+
     def initUI(self): # this loads the ui
         loader = QUiLoader()
-        UI_FILE = f"{os.path.dirname(os.path.abspath(__file__))}\interface\main_window.ui" #path to ui
+        UI_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "interface", "main_window.ui")
+        print(f"UI file path: {UI_FILE}")  # Debug: Print the UI file path
+        if not os.path.exists(UI_FILE):
+            cmds.error(f"ERROR: UI file does not exist: {UI_FILE}")
+
         file = QFile(UI_FILE)
-        file.open(QFile.ReadOnly)
+        if not file.open(QFile.ReadOnly):
+            cmds.error(f"ERROR: Unable to open UI file: {UI_FILE}")
+
         self.ui = loader.load(file, parentWidget=self)
         file.close()
+
 
     def create_ribbon(self):
         #self.ctrl_amount = 3
@@ -124,7 +131,7 @@ class QtSampler(QWidget):
             cmds.parentConstraint(ctrl,f"jnt_ctrl_{selected_follicle}",mo=1, n=f"pConst_jnt_ctrl_{selected_follicle}")
             cmds.connectAttr(f"{ctrl}.scale", f"jnt_ctrl_{selected_follicle}.scale")
             cmds.select(ctrl)
-            OPM.offsetParentMatrix()
+            OPM.offsetParentMatrix(ctrl)
             self.ctrl_list.append(ctrl)
 
     def group_setup(self):

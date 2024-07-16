@@ -8,9 +8,11 @@ from Ribbon_Twist_Joints import code # change to script running temp for now
 from Ribbon import ribbon_it
 
 importlib.reload(code) # remove after debug
+importlib.reload(ribbon_it)
 
 def run():
-    ribbon_it.main()
+    code.main()
+    #ribbon_it.main()
     print("main run")
     
 # run_ui()
