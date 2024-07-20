@@ -1,20 +1,24 @@
 import maya.cmds as cmds
+import importlib
 import OPM
-
+importlib.reload(OPM)
 
 class ribbon_twist():
     def __init__(self):
-        selected_surface = cmds.ls(selection=True)
+        selected_surface = cmds.ls(selection=True) #tst
         if selected_surface:
             self.nurbs_surface = selected_surface[0]
             self.grp = f"grp_{self.nurbs_surface}"
             self.grp_list = cmds.listRelatives(self.grp, c=1)
-            self.existing_skin_cluster = cmds.ls(cmds.listHistory(self.nurbs_surface), type="skinCluster")
+            self.skin_object_list = []
             self.duplicate_ctrl_joints()
             self.create_tween_controls()
 
-            #iso_list = self.select_isoparms(UV="U")
-            #self.insert_offset_isoparms(iso_list)
+            iso_list = self.select_isoparms(UV="U")
+            self.insert_offset_isoparms(iso_list)
+            self.skin_ribbon()
+
+            cmds.select(clear=1)
         else:
             print("Please select a NURBS surface.")
 
@@ -25,22 +29,29 @@ class ribbon_twist():
 
         iso_list = cmds.getAttr(f"{surface_info}.knots{UV}")[0]
         iso_list = list(dict.fromkeys(iso_list))
-        print(iso_list)
+        print(f"iso_list: {iso_list}")
         cmds.delete(surface_info)
         return iso_list
 
     def insert_offset_isoparms(self, iso_list):
         offset = 0.01
-        for iso in iso_list:
-            print(iso)
-            # Calculate the new parameter values
+        fol_jnt_grp = [cmds.listRelatives(x,c=1) for x in self.grp_list if "_fol" in x]
+        print(fol_jnt_grp)
+        for fol in fol_jnt_grp:
+            print(fol)
+            for x in self.ctrl_jnt_grp:
+                print(f"checking for: jnt_ctrl_{fol} in {x}")
+                if f"jnt_ctrl_{fol}" == x:
+                    print(fol)
+
+            """# Calculate the new parameter values
             param_value_plus = iso + offset
             param_value_minus = iso - offset
 
             # Insert the isoparms
             cmds.insertKnotSurface(self.nurbs_surface, d=1, p=param_value_plus, rpo=1)
             cmds.insertKnotSurface(self.nurbs_surface, d=1, p=param_value_minus, rpo=1)
-            cmds.delete(self.nurbs_surface, constructionHistory = True)
+            cmds.delete(self.nurbs_surface, constructionHistory = True)"""
 
     def duplicate_ctrl_joints(self):
         self.ctrl_jnt_grp = [cmds.listRelatives(x, c=1) for x in self.grp_list if "skn_jnt" in x][0]
@@ -50,7 +61,7 @@ class ribbon_twist():
             except IndexError: next=None
             try: previous = self.ctrl_jnt_grp[x-1]
             except IndexError: previous=None
-            print(f"Current: {current}, next: {next}, previous: {previous}")
+            # print(f"Current: {current}, next: {next}, previous: {previous}")
 
             if next is None:
                 pass
@@ -72,14 +83,10 @@ class ribbon_twist():
                 cmds.ikHandle(sj=angle_name, ee=angle_tip_name,solver="ikSCsolver",n=hdl_name)
                 cmds.connectAttr(f"{next}.translate",f"{hdl_name}.translate")
 
-                if self.existing_skin_cluster is None:
-                    pass # change this to make one if it doesnt exist
-                else:
-                    cmds.skinCluster(self.existing_skin_cluster,edit=True,dr=4,ps=0,ns=10,ai=angle_name)
+                self.skin_object_list.append(angle_name)
 
     def create_tween_controls(self):
         self.ctrl_jnt_prnt_grp = [x for x in self.grp_list if "skn_jnt" in x][0]
-        fol_jnt_grp = [cmds.listRelatives() for x in self.grp_list if "skn_jnt"]
         fol_jnts = [cmds.listRelatives(i, ad=1, type="joint")[0] for x in self.grp_list if "fol" in x for i in cmds.listRelatives(x, c=1)]
         filtered_fol_jnts = fol_jnts
         all_fol_jnts = [cmds.listRelatives(i, ad=1, type="joint")[0] for x in self.grp_list if "fol" in x for i in cmds.listRelatives(x, c=1)]
@@ -103,10 +110,7 @@ class ribbon_twist():
             OPM.offsetParentMatrix(ctrl_crv)
             cmds.parentConstraint(ctrl_crv, tween_ctrl,mo=1,n=f"pConst_{ctrl_crv}")
 
-            if self.existing_skin_cluster is None:
-                pass # change this to make one if it doesnt exist
-            else:
-                cmds.skinCluster(self.existing_skin_cluster,edit=True,dr=4,ps=0,ns=10,ai=tween_ctrl)
+            self.skin_object_list.append(tween_ctrl)
 
         for x in range(len(all_fol_jnts)):
             current = all_fol_jnts[x]
@@ -126,6 +130,16 @@ class ribbon_twist():
             if previous and current in fol_jnts:
                 previous = next.replace("_fol_","_ctrl_")
                 cmds.aimConstraint(previous, f"{current}_aim",aimVector=(1,0,0),upVector=(1,0,0),worldUpType="objectrotation",worldUpVector=(0,1,0),worldUpObject=previous)
+
+
+    def skin_ribbon(self):
+        existing_skin_cluster = cmds.ls(cmds.listHistory(self.nurbs_surface), type="skinCluster")
+        if existing_skin_cluster is None:
+                cmds.select(self.nurbs_surface)
+                cmds.bindSkin(self.skin_object_list)
+        else:
+            cmds.skinCluster(existing_skin_cluster,edit=True,ps=0,ns=10,ai=self.skin_object_list)
+            #cmds.skinCluster(self.existing_skin_cluster,edit=True,dr=4,ps=0,ns=10,ai=angle_name)
 
 
 def main():

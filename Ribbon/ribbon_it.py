@@ -12,7 +12,7 @@ import os.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import ramp_values
-import OPM
+from Ribbon import OPM
 importlib.reload(ramp_values)
 importlib.reload(OPM)
 
