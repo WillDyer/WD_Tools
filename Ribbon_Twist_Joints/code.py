@@ -35,23 +35,25 @@ class ribbon_twist():
 
     def insert_offset_isoparms(self, iso_list):
         offset = 0.01
-        fol_jnt_grp = [cmds.listRelatives(x,c=1) for x in self.grp_list if "_fol" in x]
-        print(fol_jnt_grp)
-        for fol in fol_jnt_grp:
-            print(fol)
-            for x in self.ctrl_jnt_grp:
-                print(f"checking for: jnt_ctrl_{fol} in {x}")
-                if f"jnt_ctrl_{fol}" == x:
-                    print(fol)
+        fol_jnt_grp = [cmds.listRelatives(x,c=1) for x in self.grp_list if "_fol" in x][0]
+        iso_jnts_len = []
+        iso_jnts_len = [fol for fol in range(len(fol_jnt_grp)) for x in self.ctrl_jnt_grp if f"jnt_ctrl_{fol_jnt_grp[fol]}" == x]
 
-            """# Calculate the new parameter values
+        filtered_iso_list = []
+        for x in range(len(iso_list)):
+            if x in iso_jnts_len:
+                filtered_iso_list.append(iso_list[x])
+        # filtered_iso_list = [filtered_iso_list.append(iso_list[x]) for x in range(len(iso_list)) if x in iso_jnts_len]
+
+        for iso in filtered_iso_list:
+            # Calculate the new parameter values
             param_value_plus = iso + offset
             param_value_minus = iso - offset
 
             # Insert the isoparms
             cmds.insertKnotSurface(self.nurbs_surface, d=1, p=param_value_plus, rpo=1)
             cmds.insertKnotSurface(self.nurbs_surface, d=1, p=param_value_minus, rpo=1)
-            cmds.delete(self.nurbs_surface, constructionHistory = True)"""
+            cmds.delete(self.nurbs_surface, constructionHistory = True)
 
     def duplicate_ctrl_joints(self):
         self.ctrl_jnt_grp = [cmds.listRelatives(x, c=1) for x in self.grp_list if "skn_jnt" in x][0]
@@ -84,6 +86,7 @@ class ribbon_twist():
                 cmds.connectAttr(f"{next}.translate",f"{hdl_name}.translate")
 
                 self.skin_object_list.append(angle_name)
+        self.skin_object_list.extend(self.ctrl_jnt_grp)
 
     def create_tween_controls(self):
         self.ctrl_jnt_prnt_grp = [x for x in self.grp_list if "skn_jnt" in x][0]
@@ -134,11 +137,17 @@ class ribbon_twist():
 
     def skin_ribbon(self):
         existing_skin_cluster = cmds.ls(cmds.listHistory(self.nurbs_surface), type="skinCluster")
-        if existing_skin_cluster is None:
-                cmds.select(self.nurbs_surface)
-                cmds.bindSkin(self.skin_object_list)
+        print(f"exsiting skin_cluster: {existing_skin_cluster}")
+        if existing_skin_cluster:
+            for obj in self.skin_object_list:
+                cmds.skinCluster(existing_skin_cluster,edit=True,ps=0,ns=10,ai=obj)
         else:
-            cmds.skinCluster(existing_skin_cluster,edit=True,ps=0,ns=10,ai=self.skin_object_list)
+            #cmds.select(self.nurbs_surface)
+            # Select joints and surface
+            cmds.select(self.skin_object_list, self.nurbs_surface)
+
+            # Create a skin cluster to bind the joints to the surface
+            cmds.skinCluster(tsb=True)
             #cmds.skinCluster(self.existing_skin_cluster,edit=True,dr=4,ps=0,ns=10,ai=angle_name)
 
 
