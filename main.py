@@ -7,10 +7,12 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 #from Ribbon_Twist_Joints import code # change to script running temp for now
 from Ribbon import ribbon_it
 from mouth_setup import mouth_build
+from test_ui import interface
 
 #importlib.reload(code) # remove after debug
 importlib.reload(ribbon_it)
-importlib.reload(mouth_build)
+importlib.reload(mouth_build) 
+importlib.reload(interface)
 
 """def run_code():
     code.main()
@@ -23,5 +25,7 @@ def run_ribbon():
 def run_mouth():
     mouth_build.mouth()
 
+def run_ui():
+    interface.main()
     
 # run_ui()
