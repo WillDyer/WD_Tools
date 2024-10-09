@@ -8,11 +8,13 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from Ribbon import ribbon_it
 from mouth_setup import mouth_build
 from test_ui import interface
+from jiggle import main as jiggle
 
 #importlib.reload(code) # remove after debug
 importlib.reload(ribbon_it)
 importlib.reload(mouth_build) 
 importlib.reload(interface)
+importlib.reload(jiggle)
 
 """def run_code():
     code.main()
@@ -27,5 +29,9 @@ def run_mouth():
 
 def run_ui():
     interface.main()
+
+def run_jiggle():
+    jiggle.jiggle_it()
+
     
 # run_ui()
